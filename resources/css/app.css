@@ -124,6 +124,15 @@
     --sidebar-border: hsl(0 0% 91%);
     --sidebar-ring: hsl(217.2 91.2% 59.8%);
     --sidebar: hsl(0 0% 98%);
+
+    /* Data-viz palette (validated: CVD + normal-vision safe in both modes). */
+    --dv-blue: #2a78d6;
+    --dv-green: #0ca30c;
+    --dv-yellow: #eda100;
+    --dv-violet: #4a3aa7;
+    --dv-red: #d03b3b;
+    --dv-aqua: #1baf7a;
+    --dv-orange: #eb6834;
 }
 
 .dark {
@@ -160,6 +169,13 @@
     --sidebar-border: hsl(0 0% 15.9%);
     --sidebar-ring: hsl(217.2 91.2% 59.8%);
     --sidebar: hsl(240 5.9% 10%);
+
+    /* Data-viz palette — dark steps (green & red are shared with light). */
+    --dv-blue: #3987e5;
+    --dv-yellow: #c98500;
+    --dv-violet: #9085e9;
+    --dv-aqua: #199e70;
+    --dv-orange: #d95926;
 }
 
 @layer base {

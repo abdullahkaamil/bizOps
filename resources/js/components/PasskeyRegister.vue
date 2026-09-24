@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { usePasskeyRegister } from '@laravel/passkeys/vue';
-import { ref } from 'vue';
+import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+
+const { t } = useI18n();
 
 const emit = defineEmits<{
     success: [];
@@ -61,12 +64,10 @@ const handleCancel = () => {
 
 <template>
     <div v-if="!isSupported" class="text-sm text-muted-foreground">
-        Passkeys are not supported in this browser.
+        {{ t("security.not_supported") }}
     </div>
 
-    <Button v-else-if="!showForm" variant="outline" @click="showForm = true">
-        Add passkey
-    </Button>
+    <Button v-else-if="!showForm" variant="outline" @click="showForm = true">{{ t("security.add_passkey") }}</Button>
 
     <form
         v-else
@@ -74,17 +75,17 @@ const handleCancel = () => {
         class="space-y-4 rounded-lg border border-border bg-muted/50 p-4"
     >
         <div class="grid gap-2">
-            <Label for="passkey-name">Passkey name</Label>
+            <Label for="passkey-name">{{ t("security.passkey_name") }}</Label>
             <Input
                 id="passkey-name"
                 type="text"
                 v-model="name"
-                placeholder="e.g., MacBook Pro, iPhone"
+                :placeholder="t('security.passkey_name_ph')"
                 class="mt-1 block w-full border-foreground/20"
                 autofocus
             />
             <p class="text-xs text-muted-foreground">
-                A name helps you identify this passkey later.
+                {{ t("security.passkey_name_hint") }}
             </p>
         </div>
 
@@ -92,11 +93,9 @@ const handleCancel = () => {
 
         <div class="flex gap-2">
             <Button type="submit" :disabled="isLoading || !name.trim()">
-                {{ isLoading ? 'Registering...' : 'Register passkey' }}
+                {{ isLoading ? t("security.registering") : t("security.register_passkey") }}
             </Button>
-            <Button type="button" variant="ghost" @click="handleCancel">
-                Cancel
-            </Button>
+            <Button type="button" variant="ghost" @click="handleCancel">{{ t("common.cancel") }}</Button>
         </div>
     </form>
 </template>
