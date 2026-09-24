@@ -2,35 +2,37 @@
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { Building2, KeyRound, ShieldCheck } from '@lucide/vue';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { dashboard, login } from '@/routes';
 
+const { t } = useI18n();
 const page = usePage();
 const appName = computed(() => page.props.name);
 const user = computed(() => page.props.auth.user);
 const tenant = computed(() => page.props.tenant);
 
-const features = [
+const features = computed(() => [
     {
         icon: Building2,
-        title: 'Multi-tenant',
-        text: 'Every organization gets its own isolated workspace.',
+        title: t('welcome.f_multitenant_title'),
+        text: t('welcome.f_multitenant_text'),
     },
     {
         icon: ShieldCheck,
-        title: 'Role-based access',
-        text: 'Fine-grained permissions for every team member.',
+        title: t('welcome.f_rbac_title'),
+        text: t('welcome.f_rbac_text'),
     },
     {
         icon: KeyRound,
-        title: 'Secure by default',
-        text: 'Passkeys, two-factor auth and per-tenant data.',
+        title: t('welcome.f_secure_title'),
+        text: t('welcome.f_secure_text'),
     },
-];
+]);
 </script>
 
 <template>
-    <Head :title="tenant ? tenant.name : 'Welcome'" />
+    <Head :title="tenant ? tenant.name : t('welcome.head')" />
 
     <div
         class="relative flex min-h-svh flex-col overflow-hidden bg-background text-foreground"
@@ -53,16 +55,12 @@ const features = [
                 v-if="user"
                 :href="dashboard()"
                 class="rounded-full bg-primary px-5 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90"
-            >
-                Dashboard
-            </Link>
+            >{{ t("nav.dashboard") }}</Link>
             <Link
                 v-else
                 :href="login()"
                 class="rounded-full border border-border px-5 py-2 text-sm font-medium transition hover:bg-muted"
-            >
-                Log in
-            </Link>
+            >{{ t("auth.log_in") }}</Link>
         </header>
 
         <main
@@ -78,24 +76,20 @@ const features = [
                 <span
                     class="inline-flex items-center rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground"
                 >
-                    <template v-if="tenant"
-                        >{{ tenant.name }} workspace</template
-                    >
-                    <template v-else>Business Operations Platform</template>
+                    <template v-if="tenant">{{ t("welcome.workspace_badge", { name: tenant.name }) }}</template>
+                    <template v-else>{{ t("welcome.tagline_badge") }}</template>
                 </span>
 
                 <h1
                     class="text-4xl font-semibold tracking-tight text-balance sm:text-5xl"
                 >
-                    Run your business, all in one place.
+                    {{ t("welcome.headline") }}
                 </h1>
 
                 <p
                     class="mx-auto max-w-xl text-base text-balance text-muted-foreground"
                 >
-                    {{ appName }} gives every team its own secure workspace —
-                    with users, roles and permissions built in. Sign in to get
-                    started.
+                    {{ t("welcome.subtext", { app: appName }) }}
                 </p>
             </div>
 
@@ -104,16 +98,12 @@ const features = [
                     v-if="user"
                     :href="dashboard()"
                     class="rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition hover:opacity-90"
-                >
-                    Go to dashboard
-                </Link>
+                >{{ t("welcome.go_dashboard") }}</Link>
                 <Link
                     v-else
                     :href="login()"
                     class="rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition hover:opacity-90"
-                >
-                    Log in
-                </Link>
+                >{{ t("auth.log_in") }}</Link>
             </div>
 
             <div class="mt-6 grid w-full gap-4 sm:grid-cols-3">

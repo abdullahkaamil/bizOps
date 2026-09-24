@@ -3,6 +3,7 @@ import { Form } from '@inertiajs/vue3';
 import { Check, Copy, ScanLine } from '@lucide/vue';
 import { useClipboard } from '@vueuse/core';
 import { computed, nextTick, ref, useTemplateRef, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import AlertError from '@/components/AlertError.vue';
 import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,7 @@ type Props = {
 const { resolvedAppearance } = useAppearance();
 
 const props = defineProps<Props>();
+const { t } = useI18n();
 const isOpen = defineModel<boolean>('isOpen');
 
 const { copy, copied } = useClipboard();
@@ -46,26 +48,24 @@ const pinInputContainerRef = useTemplateRef('pinInputContainerRef');
 const modalConfig = computed<TwoFactorConfigContent>(() => {
     if (props.twoFactorEnabled) {
         return {
-            title: 'Two-factor authentication enabled',
-            description:
-                'Two-factor authentication is now enabled. Scan the QR code or enter the setup key in your authenticator app.',
-            buttonText: 'Close',
+            title: t('security.setup_enabled_title'),
+            description: t('security.setup_enabled_desc'),
+            buttonText: t('security.close'),
         };
     }
 
     if (showVerificationStep.value) {
         return {
-            title: 'Verify authentication code',
-            description: 'Enter the 6-digit code from your authenticator app',
-            buttonText: 'Continue',
+            title: t('security.verify_title'),
+            description: t('security.verify_desc'),
+            buttonText: t('security.continue'),
         };
     }
 
     return {
-        title: 'Enable two-factor authentication',
-        description:
-            'To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app',
-        buttonText: 'Continue',
+        title: t('security.enable_title'),
+        description: t('security.enable_desc'),
+        buttonText: t('security.continue'),
     };
 });
 
@@ -197,7 +197,7 @@ watch(
                                 class="absolute inset-0 top-1/2 h-px w-full bg-border"
                             />
                             <span class="relative bg-card px-2 py-1"
-                                >or, enter the code manually</span
+                                >{{ t("security.enter_manually") }}</span
                             >
                         </div>
 
@@ -278,16 +278,12 @@ watch(
                                     class="w-auto flex-1"
                                     @click="showVerificationStep = false"
                                     :disabled="processing"
-                                >
-                                    Back
-                                </Button>
+                                >{{ t("security.back") }}</Button>
                                 <Button
                                     type="submit"
                                     class="w-auto flex-1"
                                     :disabled="processing || code.length < 6"
-                                >
-                                    Confirm
-                                </Button>
+                                >{{ t("security.confirm") }}</Button>
                             </div>
                         </div>
                     </Form>
