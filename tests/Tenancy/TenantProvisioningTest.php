@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Tenancy\CreateTenant;
+use App\Enums\Permission;
 use App\Enums\Role;
 use App\Models\Tenant;
 use App\Models\User;
@@ -26,13 +27,13 @@ test('a tenant is provisioned with its own database, domain, roles and admin use
         ->and($tenant->domains()->pluck('domain')->all())->toContain('acme');
 
     $tenant->run(function () {
-        expect(RoleModel::count())->toBe(3)
-            ->and(PermissionModel::count())->toBe(6);
+        expect(RoleModel::count())->toBe(count(Role::cases()))
+            ->and(PermissionModel::count())->toBe(count(Permission::cases()));
 
         $admin = User::where('email', 'admin@acme.test')->first();
 
         expect($admin)->not->toBeNull()
-            ->and($admin->hasRole(Role::Admin->value))->toBeTrue()
+            ->and($admin->hasRole(Role::Owner->value))->toBeTrue()
             ->and($admin->can('users.delete'))->toBeTrue();
     });
 });

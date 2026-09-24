@@ -50,7 +50,7 @@ test('a central admin can renew an expired tenant, restoring access', function (
     expect($tenant->fresh()->hasActiveLicense())->toBeFalse();
 
     $this->actingAs($centralAdmin)
-        ->post("http://dashboard.kaamil.test/tenants/{$tenant->id}/renew", [
+        ->post("http://dashboard.kaamil.test/admin/tenants/{$tenant->id}/renew", [
             'license_expires_at' => now()->addYear()->toDateString(),
         ])
         ->assertRedirect();
@@ -70,7 +70,7 @@ test('renewing rejects a past date', function () {
     $tenant = provisionLicensedTenant();
 
     $this->actingAs($centralAdmin)
-        ->post("http://dashboard.kaamil.test/tenants/{$tenant->id}/renew", [
+        ->post("http://dashboard.kaamil.test/admin/tenants/{$tenant->id}/renew", [
             'license_expires_at' => now()->subDay()->toDateString(),
         ])
         ->assertSessionHasErrors('license_expires_at');

@@ -44,14 +44,14 @@ test('a tenant admin can create a team member with a role', function () {
             'name' => 'New Member',
             'email' => 'member@acme.test',
             'password' => 'password123',
-            'role' => Role::Member->value,
+            'role' => Role::Sales->value,
         ])
         ->assertRedirect();
 
     $tenant->run(function () {
         $member = User::where('email', 'member@acme.test')->first();
         expect($member)->not->toBeNull()
-            ->and($member->hasRole(Role::Member->value))->toBeTrue();
+            ->and($member->hasRole(Role::Sales->value))->toBeTrue();
     });
 });
 
@@ -65,7 +65,7 @@ test('a member without the create permission is forbidden from creating users', 
             'password' => Hash::make('password123'),
             'email_verified_at' => now(),
         ]);
-        $user->assignRole(Role::Member->value);
+        $user->assignRole(Role::Sales->value);
 
         return $user;
     });
@@ -75,7 +75,7 @@ test('a member without the create permission is forbidden from creating users', 
             'name' => 'Should Fail',
             'email' => 'fail@acme.test',
             'password' => 'password123',
-            'role' => Role::Member->value,
+            'role' => Role::Sales->value,
         ])
         ->assertForbidden();
 

@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Stancl\JobPipeline\JobPipeline;
+use Stancl\Tenancy\Contracts\Tenant as TenantContract;
+use Stancl\Tenancy\DatabaseConfig;
 use Stancl\Tenancy\Events;
 use Stancl\Tenancy\Exceptions\NotASubdomainException;
 use Stancl\Tenancy\Jobs;
@@ -29,19 +31,11 @@ class TenancyServiceProvider extends ServiceProvider
         return [
             // Tenant events
             Events\CreatingTenant::class => [],
-            Events\TenantCreated::class => [
-                JobPipeline::make([
-                    Jobs\CreateDatabase::class,
-                    Jobs\MigrateDatabase::class,
-                    // Jobs\SeedDatabase::class,
-
-                    // Your own jobs to prepare the tenant.
-                    // Provision API keys, create S3 buckets, anything you want!
-
-                ])->send(function (Events\TenantCreated $event) {
-                    return $event->tenant;
-                })->shouldBeQueued(false), // `false` by default, but you probably want to make this `true` for production.
-            ],
+            // Database creation + migration are handled explicitly and
+            // observably by App\Central\Actions\TenantProvisioner (Phase 4),
+            // NOT by an automatic pipeline, so each step is logged, idempotent,
+            // and retryable. Do not re-enable this pipeline.
+            Events\TenantCreated::class => [],
             Events\SavingTenant::class => [],
             Events\TenantSaved::class => [],
             Events\UpdatingTenant::class => [],
@@ -111,6 +105,12 @@ class TenancyServiceProvider extends ServiceProvider
         $this->makeTenancyMiddlewareHighestPriority();
 
         $this->configureSubdomainIdentification();
+
+        // Deterministic, safe tenant database names: tenant_<uuid-without-hyphens>.
+        // Never derived from user-controlled company names.
+        DatabaseConfig::generateDatabaseNamesUsing(
+            fn (TenantContract $tenant): string => 'tenant_'.str_replace('-', '', (string) $tenant->getTenantKey()),
+        );
     }
 
     /**
