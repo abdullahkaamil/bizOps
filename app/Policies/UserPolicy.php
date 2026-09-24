@@ -39,6 +39,13 @@ class UserPolicy
         return $user->can(Permission::DeleteUsers->value) && $user->id !== $model->id;
     }
 
+    public function suspend(User $user, User $model): bool
+    {
+        // Self-suspension is allowed except for the last active owner, which the
+        // controller guards; here we only check the permission.
+        return $user->can(Permission::SuspendUsers->value);
+    }
+
     public function manageRoles(User $user): bool
     {
         return $user->can(Permission::ManageRoles->value);
