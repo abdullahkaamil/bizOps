@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Tenant;
 
-use App\Enums\Role;
+use App\Domain\Authorization\RoleCatalog;
+use App\Enums\UserType;
 use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -22,7 +23,9 @@ class StoreUserRequest extends FormRequest
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique(User::class, 'email')],
             'password' => ['required', 'string', Password::defaults()],
-            'role' => ['required', 'string', Rule::in(Role::values())],
+            // Direct creation is for internal users only; external customer
+            // representatives must be invited (they require a customer link).
+            'role' => ['required', 'string', Rule::in(RoleCatalog::assignableFor(UserType::Internal))],
         ];
     }
 }

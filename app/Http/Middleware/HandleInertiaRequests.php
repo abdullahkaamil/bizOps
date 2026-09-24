@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Central\Models\Announcement;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -41,19 +42,31 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             'name' => config('app.name'),
+            // Active locale for the frontend i18n layer (vue-i18n).
+            'locale' => app()->getLocale(),
             'auth' => [
                 'user' => $user,
                 // Tenant-local permissions & roles, exposed only for UI presentation.
                 // All real authorization happens server-side through policies/gates.
                 'permissions' => $user && $tenant ? $user->getAllPermissions()->pluck('name')->all() : [],
                 'roles' => $user && $tenant ? $user->getRoleNames()->all() : [],
+                'userType' => $user?->user_type?->value,
                 // Any authenticated user on the central domain is a SaaS administrator.
                 'isCentralAdmin' => (bool) ($user && ! $tenant),
             ],
             'tenant' => $tenant ? [
                 'id' => $tenant->getTenantKey(),
                 'name' => $tenant->name,
+                'slug' => $tenant->slug,
             ] : null,
+            // Live platform announcements (central), shown across the app.
+            'announcements' => Announcement::query()->live()->latest('id')->get()
+                ->map(fn (Announcement $a): array => [
+                    'id' => $a->public_id,
+                    'title' => $a->title,
+                    'body' => $a->body,
+                    'level' => $a->level,
+                ])->all(),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
