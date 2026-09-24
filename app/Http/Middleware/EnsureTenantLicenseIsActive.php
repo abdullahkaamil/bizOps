@@ -27,7 +27,8 @@ class EnsureTenantLicenseIsActive
 
         $tenant = tenant();
 
-        if (! $tenant instanceof Tenant || $tenant->hasActiveLicense()) {
+        // Accessible = status is active AND the license has not expired.
+        if (! $tenant instanceof Tenant || $tenant->isAccessible()) {
             return $next($request);
         }
 

@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
+        DemoTenantSeeder::class::seed();
         User::firstOrCreate(
             ['email' => 'admin@kaamil.test'],
             [

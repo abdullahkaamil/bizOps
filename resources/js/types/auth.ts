@@ -14,12 +14,14 @@ export type Auth = {
     user: User;
     permissions: string[];
     roles: string[];
+    userType: 'internal' | 'external' | null;
     isCentralAdmin: boolean;
 };
 
 export type Tenant = {
     id: string;
     name: string;
+    slug: string | null;
 };
 
 /* @chisel-passkeys */
