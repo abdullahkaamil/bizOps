@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
+import { useI18n } from 'vue-i18n';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
@@ -15,10 +16,12 @@ defineProps<{
     status?: string;
     canResetPassword: boolean;
 }>();
+
+const { t } = useI18n();
 </script>
 
 <template>
-    <Head title="Log in" />
+    <Head :title="t('auth.log_in')" />
 
     <div
         v-if="status"
@@ -35,7 +38,7 @@ defineProps<{
     >
         <div class="grid gap-6">
             <div class="grid gap-2">
-                <Label for="email">Email address</Label>
+                <Label for="email">{{ t('auth.email_address') }}</Label>
                 <Input
                     id="email"
                     type="email"
@@ -51,15 +54,13 @@ defineProps<{
 
             <div class="grid gap-2">
                 <div class="flex items-center justify-between">
-                    <Label for="password">Password</Label>
+                    <Label for="password">{{ t('auth.password') }}</Label>
                     <TextLink
                         v-if="canResetPassword"
                         :href="request()"
                         class="text-sm"
                         :tabindex="5"
-                    >
-                        Forgot your password?
-                    </TextLink>
+                    >{{ t('auth.forgot_your_password') }}</TextLink>
                 </div>
                 <PasswordInput
                     id="password"
@@ -67,7 +68,7 @@ defineProps<{
                     required
                     :tabindex="2"
                     autocomplete="current-password"
-                    placeholder="Password"
+                    :placeholder="t('auth.password')"
                 />
                 <InputError :message="errors.password" />
             </div>
@@ -75,7 +76,7 @@ defineProps<{
             <div class="flex items-center justify-between">
                 <Label for="remember" class="flex items-center space-x-3">
                     <Checkbox id="remember" name="remember" :tabindex="3" />
-                    <span>Remember me</span>
+                    <span>{{ t('auth.remember_me') }}</span>
                 </Label>
             </div>
 
@@ -87,7 +88,7 @@ defineProps<{
                 data-test="login-button"
             >
                 <Spinner v-if="processing" />
-                Log in
+                {{ t('auth.log_in') }}
             </Button>
         </div>
     </Form>
