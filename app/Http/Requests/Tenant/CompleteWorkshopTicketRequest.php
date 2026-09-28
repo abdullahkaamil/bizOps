@@ -1,0 +1,23 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Requests\Tenant;
+
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Foundation\Http\FormRequest;
+
+class CompleteWorkshopTicketRequest extends FormRequest
+{
+    /**
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        // Repair notes are validated in depth by the action (they may already be
+        // present on the ticket); here we only bound the optional payload.
+        return [
+            'repair_notes' => ['nullable', 'string', 'max:20000'],
+        ];
+    }
+}

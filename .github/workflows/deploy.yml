@@ -1,0 +1,64 @@
+name: deploy
+
+# Builds the production image and validates the release on tag pushes. The final
+# deploy step is intentionally a manual gate: promote to staging, run the release
+# checklist (docs/release-checklist.md), then promote to production.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+      # Build the runtime image to prove the multi-stage Dockerfile is releasable.
+      # Push is left to the deployment environment (add registry login + push here).
+      - name: Build production image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: false
+          tags: bizops:${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  validate-config:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.4'
+          extensions: pdo_pgsql, pgsql, redis
+          tools: composer:v2
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      # Validate the production template against the production ruleset. Any
+      # missing/unsafe key fails the release before it can be promoted.
+      - name: Validate production environment template
+        run: |
+          cp .env.production.example .env
+          php artisan key:generate
+          APP_ENV=production php artisan app:validate-env

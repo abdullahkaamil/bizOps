@@ -1,0 +1,87 @@
+# Reference production topology. Managed Postgres/Redis/S3 are recommended over
+# the in-compose services below for real deployments — those are included so the
+# stack can be stood up whole for staging. Secrets come from an external .env
+# (never commit it); see .env.production.example for the required keys.
+services:
+  # Reverse proxy / TLS termination. Fronts the web container and serves assets.
+  proxy:
+    image: nginx:1.27-alpine
+    depends_on:
+      - web
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+
+  # PHP-FPM web container.
+  web:
+    image: ${APP_IMAGE:-bizops:latest}
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    env_file: .env.production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  # Queue worker. Processes the central-pinned jobs table; QueueTenancyBootstrapper
+  # re-initializes the tenant per job. Scale horizontally with --scale worker=N.
+  worker:
+    image: ${APP_IMAGE:-bizops:latest}
+    env_file: .env.production
+    command: php artisan queue:work --sleep=1 --tries=3 --max-time=3600 --backoff=5
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    # Workers boot the framework once; skip the per-container cache warm.
+    environment:
+      SKIP_BOOT_TASKS: "true"
+
+  # Scheduler. Runs the framework scheduler once a minute (backups, due-soon
+  # notifications, quotation expiry). Exactly one replica.
+  scheduler:
+    image: ${APP_IMAGE:-bizops:latest}
+    env_file: .env.production
+    command: php artisan schedule:work
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    environment:
+      SKIP_BOOT_TASKS: "true"
+
+  postgres:
+    image: postgres:18
+    env_file: .env.production
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redisdata:/data
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:

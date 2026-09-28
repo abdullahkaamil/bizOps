@@ -31,3 +31,6 @@ yarn-error.log
 .claude
 .cursor
 .junie
+storage/tenant*/*
+package-lock.json
+composer.lock
